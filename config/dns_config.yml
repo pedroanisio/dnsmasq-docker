@@ -1,0 +1,54 @@
+# Configuration for dnsmasq using YAML
+
+# DNS Forwarding
+dns_servers:
+  - 8.8.8.8
+  - 8.8.4.4
+
+# Static DNS Entries
+static_dns_entries:
+  - domain: "internal.example.com"
+    ip: "192.168.100.10"
+  - domain: "backup.example.com"
+    ip: "192.168.100.11"
+
+# Domains configuration
+domains:
+  - name: lab.internal
+    subnets:
+      hyprv:
+        range: 10.0.0.0/24
+        hosts:
+          - ip: 10.0.0.10
+            name: ns1
+          - ip: 10.0.0.20
+            name: web
+          - ip: 10.0.0.30
+            name: db
+
+      ants:
+        range: 10.0.33.0/24
+        hosts:
+          - ip: 10.0.33.10
+            name: device1
+          - ip: 10.0.33.20
+            name: device2
+          - ip: 10.0.33.30
+            name: device3
+
+  - name: example.com
+    # No subnets for this domain, just individual hosts
+    hosts:
+      - ip: 192.168.1.10
+        name: webserver
+      - ip: 192.168.1.20
+        name: dbserver
+
+  - name: home.network
+    # Another domain without subnets, using host overrides
+    hosts:
+      - ip: 192.168.0.5
+        name: printer
+      - ip: 192.168.0.10
+        name: nas
+        override: storage

@@ -1,0 +1,48 @@
+# dnsmasq configuration generated from YAML
+
+# Only forward queries that have a domain name
+domain-needed
+
+# Block reverse lookups for private IP ranges
+bogus-priv
+
+# Upstream DNS servers
+{% for server in dns_servers %}
+server={{ server }}
+{% endfor %}
+
+# Static DNS entries
+{% for static in static_dns_entries %}
+address=/{{ static.domain }}/{{ static.ip }}
+{% endfor %}
+
+# Domains and their configurations
+{% for domain in domains %}
+# Domain: {{ domain.name }}
+expand-hosts
+domain={{ domain.name }}
+
+# Include additional hosts file for custom DNS entries
+addn-hosts=/etc/hosts.d/{{ domain.name }}.hosts
+
+# PTR records for reverse DNS
+{% if domain.subnets %}
+{% for subnet, data in domain.subnets.items() %}
+# {{ subnet }} Subnet ({{ data.range }})
+{% for host in data.hosts %}
+ptr-record={{ host.ip.split('.')[::-1]|join('.') }}.in-addr.arpa,{{ host.get('override', host.name) }}.{{ subnet }}.{{ domain.name }}
+{% endfor %}
+{% endfor %}
+{% endif %}
+
+# Additional PTR records for individual hosts without subnets
+{% if domain.hosts %}
+{% for host in domain.hosts %}
+ptr-record={{ host.ip.split('.')[::-1]|join('.') }}.in-addr.arpa,{{ host.get('override', host.name) }}.{{ domain.name }}
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+# Log DNS queries to a file
+log-queries
+log-facility=/var/log/dnsmasq.log
