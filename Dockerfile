@@ -23,8 +23,12 @@ RUN python3 -m venv /opt/docker/dnsmasq/venv && \
 # Generate configuration files using the virtual environment
 RUN /opt/docker/dnsmasq/venv/bin/python /opt/docker/dnsmasq/scripts/generate_config.py
 
+# Copy generated files to the right location
+RUN mkdir -p /etc/hosts.d && \
+    cp -r /opt/docker/dnsmasq/config/generated/* /etc/hosts.d/
+
 # Expose DNS ports
 EXPOSE 53/tcp 53/udp
 
 # Run dnsmasq with the generated configuration
-CMD ["dnsmasq", "--no-daemon", "--conf-file=/opt/docker/dnsmasq/config/generated/dnsmasq.conf"]
+CMD ["dnsmasq", "--no-daemon", "--conf-file=/etc/hosts.d/dnsmasq.conf"]
