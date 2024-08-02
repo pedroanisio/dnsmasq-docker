@@ -3,7 +3,7 @@ FROM debian:bookworm-slim
 
 # Install necessary packages
 RUN apt-get update && \
-    apt-get install -y dnsmasq python3 python3-pip && \
+    apt-get install -y dnsmasq python3 python3-pip python3-venv && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -15,11 +15,13 @@ COPY scripts/requirements.txt /opt/docker/dnsmasq/scripts/requirements.txt
 COPY scripts/generate_config.py /opt/docker/dnsmasq/scripts/generate_config.py
 COPY config /opt/docker/dnsmasq/config
 
-# Install Python dependencies
-RUN pip3 install -r /opt/docker/dnsmasq/scripts/requirements.txt
+# Create a Python virtual environment and install dependencies
+RUN python3 -m venv /opt/docker/dnsmasq/venv && \
+    /opt/docker/dnsmasq/venv/bin/pip install --upgrade pip && \
+    /opt/docker/dnsmasq/venv/bin/pip install -r /opt/docker/dnsmasq/scripts/requirements.txt
 
-# Generate configuration files
-RUN python3 /opt/docker/dnsmasq/scripts/generate_config.py
+# Generate configuration files using the virtual environment
+RUN /opt/docker/dnsmasq/venv/bin/python /opt/docker/dnsmasq/scripts/generate_config.py
 
 # Expose DNS ports
 EXPOSE 53/tcp 53/udp
